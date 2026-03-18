@@ -39,13 +39,13 @@ def get_columns():
         {
             "fieldname": "check_in",
             "label": _("Check In"),
-            "fieldtype": "Datetime",
+            "fieldtype": "Data",
             "width": 160,
         },
         {
             "fieldname": "check_out",
             "label": _("Check Out"),
-            "fieldtype": "Datetime",
+            "fieldtype": "Data",
             "width": 160,
         },
         {
@@ -67,8 +67,8 @@ def get_data(filters):
             e.employee_name,
             e.designation,
             DATE(ec.time) AS date,
-            MIN(CASE WHEN ec.log_type = 'IN' THEN ec.time END)  AS check_in,
-            MAX(CASE WHEN ec.log_type = 'OUT' THEN ec.time END) AS check_out,
+            MIN(CASE WHEN ec.log_type = 'IN' THEN 'IN' END)  AS check_in,
+            MAX(CASE WHEN ec.log_type = 'OUT' THEN 'OUT' END) AS check_out,
             ROUND(
                 TIMESTAMPDIFF(
                     MINUTE,

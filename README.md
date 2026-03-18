@@ -1,6 +1,6 @@
 ## Alwadaq
 
-this is for alwadaq
+this for alwadaq
 
 #### License
 

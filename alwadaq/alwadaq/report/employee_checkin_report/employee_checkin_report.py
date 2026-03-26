@@ -36,7 +36,6 @@ def get_columns():
             "fieldtype": "Data",
             "width": 160,
         },
-        
         {
             "fieldname": "shift",
             "label": _("Shift"),
@@ -73,27 +72,57 @@ def get_columns():
             "fieldtype": "Float",
             "width": 130,
         },
+        {
+            "fieldname": "status",
+            "label": _("Status"),
+            "fieldtype": "Data",
+            "width": 100,
+        },
     ]
 
 
 def get_data(filters):
-    conditions = get_conditions(filters)
+    filters = filters or {}
 
-    # Fetch raw datetimes for IN/OUT — TIMESTAMPDIFF works correctly on them.
-    # TIME() is NOT used in SQL because MariaDB returns timedelta objects in
-    # Python, which breaks TIMESTAMPDIFF and produces NULL working_hours.
-    # We strip the date component in Python post-processing instead.
-    query = """
+    # ── 1. Fetch all matching employees (respects employee/dept/desig filters)
+    emp_conditions = _get_employee_conditions(filters)
+    emp_rows = frappe.db.sql(
+        """
+        SELECT
+            e.name          AS employee,
+            e.employee_name,
+            e.designation
+        FROM
+            `tabEmployee` e
+        WHERE
+            e.status = 'Active'
+            {emp_conditions}
+        ORDER BY
+            e.name ASC
+        """.format(emp_conditions=emp_conditions),
+        filters,
+        as_dict=True,
+    )
+
+    if not emp_rows:
+        return []
+
+    employee_ids = [r["employee"] for r in emp_rows]
+    emp_map = {r["employee"]: r for r in emp_rows}
+
+    # ── 3. Fetch checkin aggregates for the date range ────────────────────────
+    checkin_conditions = _get_checkin_conditions(filters, employee_ids)
+
+    checkin_rows = frappe.db.sql(
+        """
         SELECT
             ec.employee,
-            e.employee_name,
-            e.designation,
-            DATE(ec.time)                                                   AS date,
-            MAX(ec.shift)                                                   AS shift,
-            MAX(st.start_time)                                              AS shift_in_time,
-            MAX(st.end_time)                                                AS shift_out_time,
-            MIN(CASE WHEN ec.log_type = 'IN'  THEN ec.time END)            AS check_in_dt,
-            MAX(CASE WHEN ec.log_type = 'OUT' THEN ec.time END)            AS check_out_dt,
+            DATE(ec.time)                                                       AS date,
+            MAX(ec.shift)                                                       AS shift,
+            MAX(st.start_time)                                                  AS shift_in_time,
+            MAX(st.end_time)                                                    AS shift_out_time,
+            MIN(CASE WHEN ec.log_type = 'IN'  THEN ec.time END)                AS check_in_dt,
+            MAX(CASE WHEN ec.log_type = 'OUT' THEN ec.time END)                AS check_out_dt,
             ROUND(
                 TIMESTAMPDIFF(
                     MINUTE,
@@ -101,43 +130,80 @@ def get_data(filters):
                     MAX(CASE WHEN ec.log_type = 'OUT' THEN ec.time END)
                 ) / 60.0,
                 2
-            )                                                               AS working_hours
+            )                                                                   AS working_hours
         FROM
             `tabEmployee Checkin` ec
         LEFT JOIN
-            `tabEmployee`   e  ON e.name  = ec.employee
-        LEFT JOIN
             `tabShift Type` st ON st.name = ec.shift
         WHERE
-            1=1 {conditions}
+            1=1 {checkin_conditions}
         GROUP BY
             ec.employee, DATE(ec.time)
-        ORDER BY
-            DATE(ec.time) DESC, ec.employee ASC
-    """.format(conditions=conditions)
+        """.format(checkin_conditions=checkin_conditions),
+        filters,
+        as_dict=True,
+    )
 
-    rows = frappe.db.sql(query, filters, as_dict=True)
+    # ── 4. Build result rows ──────────────────────────────────────────────────
+    # - Employees WITH checkins  → one row per (employee, date) they appeared
+    # - Employees WITHOUT any checkin in the range → single row, no date
+    result_present = []
+    result_absent  = []
 
-    for row in rows:
-        # Convert full datetime → time-only string "HH:MM:SS" for display.
-        # shift_in_time / shift_out_time come back as timedelta from MariaDB
-        # TIME columns — convert those too.
-        row["check_in_time"]  = _dt_to_time_str(row.get("check_in_dt"))
-        row["check_out_time"] = _dt_to_time_str(row.get("check_out_dt"))
-        row["shift_in_time"]  = _td_to_time_str(row.get("shift_in_time"))
-        row["shift_out_time"] = _td_to_time_str(row.get("shift_out_time"))
+    # Track which employees had at least one checkin in the range
+    employees_with_checkin = set(row["employee"] for row in checkin_rows)
 
-        # Remove raw datetime keys so they don't appear as extra columns
-        row.pop("check_in_dt",  None)
-        row.pop("check_out_dt", None)
+    # Present rows — iterate over actual checkin records only
+    for ci in checkin_rows:
+        eid = ci["employee"]
+        emp = emp_map.get(eid, {})
+        result_present.append({
+            "date":          ci.get("date"),
+            "employee":      eid,
+            "employee_name": emp.get("employee_name"),
+            "designation":   emp.get("designation"),
+            "shift":         ci.get("shift"),
+            "shift_in_time": _td_to_time_str(ci.get("shift_in_time")),
+            "shift_out_time":_td_to_time_str(ci.get("shift_out_time")),
+            "check_in_time": _dt_to_time_str(ci.get("check_in_dt")),
+            "check_out_time":_dt_to_time_str(ci.get("check_out_dt")),
+            "working_hours": ci.get("working_hours"),
+            "status":        "Present",
+        })
 
-    return rows
+    # Absent rows — one per employee who never appeared in checkins
+    for emp in emp_rows:
+        eid = emp["employee"]
+        if eid not in employees_with_checkin:
+            result_absent.append({
+                "date":          None,
+                "employee":      eid,
+                "employee_name": emp.get("employee_name"),
+                "designation":   emp.get("designation"),
+                "shift":         None,
+                "shift_in_time": None,
+                "shift_out_time":None,
+                "check_in_time": None,
+                "check_out_time":None,
+                "working_hours": None,
+                "status":        "Absent",
+            })
+
+    # Sort present rows: most-recent date first, then employee ascending
+    result_present.sort(key=lambda r: (r["date"], r["employee"]), reverse=False)
+    result_present.sort(key=lambda r: r["date"], reverse=True)
+
+    # Absent rows sorted by employee name
+    result_absent.sort(key=lambda r: r["employee"])
+
+    # Present rows first, then absent at the bottom
+    return result_present + result_absent
 
 
-# ── helpers ──────────────────────────────────────────────────────────────────
+# ── helpers ───────────────────────────────────────────────────────────────────
 
 def _dt_to_time_str(dt):
-    """datetime  →  'HH:MM:SS'  (or None if missing)"""
+    """datetime → 'HH:MM:SS'  (or None if missing)"""
     if not dt:
         return None
     try:
@@ -147,7 +213,7 @@ def _dt_to_time_str(dt):
 
 
 def _td_to_time_str(td):
-    """timedelta  →  'HH:MM:SS'  (MariaDB returns TIME columns as timedelta)"""
+    """timedelta → 'HH:MM:SS'  (MariaDB returns TIME columns as timedelta)"""
     if td is None:
         return None
     if isinstance(td, timedelta):
@@ -158,20 +224,29 @@ def _td_to_time_str(td):
     return str(td)
 
 
-def get_conditions(filters):
+def _get_employee_conditions(filters):
+    """WHERE clauses that apply to the Employee table directly."""
     conditions = ""
-
-    if not filters:
-        return conditions
-
     if filters.get("employee"):
-        conditions += " AND ec.employee = %(employee)s"
-
+        conditions += " AND e.name = %(employee)s"
     if filters.get("department"):
         conditions += " AND e.department = %(department)s"
-
     if filters.get("designation"):
         conditions += " AND e.designation = %(designation)s"
+    return conditions
+
+
+def _get_checkin_conditions(filters, employee_ids):
+    """
+    WHERE clauses for the checkin query.
+    employee_ids list is injected directly (safe — they are internal PK values
+    fetched from our own employee query above, never from raw user input).
+    """
+    # Always restrict to the employees we already resolved
+    ids_placeholder = ", ".join(
+        "'{}'".format(eid.replace("'", "''")) for eid in employee_ids
+    )
+    conditions = " AND ec.employee IN ({})".format(ids_placeholder)
 
     if filters.get("shift"):
         conditions += " AND ec.shift = %(shift)s"

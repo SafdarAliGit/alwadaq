@@ -188,6 +188,13 @@ def get_data(filters):
     for ci in checkin_rows:
         eid = ci["employee"]
         emp = emp_map.get(eid, {})
+
+        check_in_dt  = ci.get("check_in_dt")
+        check_out_dt = ci.get("check_out_dt")
+
+        # Single punch — MIN and MAX return same timestamp
+        single_punch = check_in_dt and check_out_dt and (check_in_dt == check_out_dt)
+
         result_present.append({
             "date":             ci.get("date"),
             "employee":         eid,
@@ -196,11 +203,11 @@ def get_data(filters):
             "shift":            ci.get("shift"),
             "shift_in_time":    _td_to_time_str(ci.get("shift_in_time")),
             "shift_out_time":   _td_to_time_str(ci.get("shift_out_time")),
-            "check_in_time":    _dt_to_time_str(ci.get("check_in_dt")),
-            "check_out_time":   _dt_to_time_str(ci.get("check_out_dt")),
-            "working_hours":    ci.get("working_hours"),
+            "check_in_time":    _dt_to_time_str(check_in_dt),
+            "check_out_time":   None if single_punch else _dt_to_time_str(check_out_dt),
+            "working_hours":    None if single_punch else ci.get("working_hours"),
             "late_minutes":     ci.get("late_minutes"),
-            "overtime":         ci.get("overtime"),
+            "overtime":         None if single_punch else ci.get("overtime"),
             "status":           "Present",
         })
 

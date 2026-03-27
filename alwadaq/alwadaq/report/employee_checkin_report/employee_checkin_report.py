@@ -110,41 +110,55 @@ def get_data(filters):
     employee_ids = [r["employee"] for r in emp_rows]
     emp_map = {r["employee"]: r for r in emp_rows}
 
-    # ── 3. Fetch checkin aggregates for the date range ────────────────────────
+    # ── 2. Fetch checkin aggregates using ROW_NUMBER to pick 1st and 2nd punch
+    #       regardless of log_type value.
+    #       ranked CTE assigns rank per (employee, date) ordered by time ASC.
+    #       Outer query picks rank=1 as check-in, rank=2 as check-out.
     checkin_conditions = _get_checkin_conditions(filters, employee_ids)
 
     checkin_rows = frappe.db.sql(
         """
         SELECT
-            ec.employee,
-            DATE(ec.time)                                                       AS date,
-            MAX(ec.shift)                                                       AS shift,
-            MAX(st.start_time)                                                  AS shift_in_time,
-            MAX(st.end_time)                                                    AS shift_out_time,
-            MIN(CASE WHEN ec.log_type = 'IN'  THEN ec.time END)                AS check_in_dt,
-            MAX(CASE WHEN ec.log_type = 'OUT' THEN ec.time END)                AS check_out_dt,
+            ranked.employee,
+            ranked.date,
+            MAX(ranked.shift)                                       AS shift,
+            MAX(st.start_time)                                      AS shift_in_time,
+            MAX(st.end_time)                                        AS shift_out_time,
+            MAX(CASE WHEN ranked.rn = 1 THEN ranked.time END)       AS check_in_dt,
+            MAX(CASE WHEN ranked.rn = 2 THEN ranked.time END)       AS check_out_dt,
             ROUND(
                 TIMESTAMPDIFF(
                     MINUTE,
-                    MIN(CASE WHEN ec.log_type = 'IN'  THEN ec.time END),
-                    MAX(CASE WHEN ec.log_type = 'OUT' THEN ec.time END)
+                    MAX(CASE WHEN ranked.rn = 1 THEN ranked.time END),
+                    MAX(CASE WHEN ranked.rn = 2 THEN ranked.time END)
                 ) / 60.0,
                 2
-            )                                                                   AS working_hours
-        FROM
-            `tabEmployee Checkin` ec
+            )                                                       AS working_hours
+        FROM (
+            SELECT
+                ec.employee,
+                DATE(ec.time)   AS date,
+                ec.time,
+                ec.shift,
+                ROW_NUMBER() OVER (
+                    PARTITION BY ec.employee, DATE(ec.time)
+                    ORDER BY ec.time ASC
+                )               AS rn
+            FROM
+                `tabEmployee Checkin` ec
+            WHERE
+                1=1 {checkin_conditions}
+        ) AS ranked
         LEFT JOIN
-            `tabShift Type` st ON st.name = ec.shift
-        WHERE
-            1=1 {checkin_conditions}
+            `tabShift Type` st ON st.name = ranked.shift
         GROUP BY
-            ec.employee, DATE(ec.time)
+            ranked.employee, ranked.date
         """.format(checkin_conditions=checkin_conditions),
         filters,
         as_dict=True,
     )
 
-    # ── 4. Build result rows ──────────────────────────────────────────────────
+    # ── 3. Build result rows ──────────────────────────────────────────────────
     # - Employees WITH checkins  → one row per (employee, date) they appeared
     # - Employees WITHOUT any checkin in the range → single row, no date
     result_present = []

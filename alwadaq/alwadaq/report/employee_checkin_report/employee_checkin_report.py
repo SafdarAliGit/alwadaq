@@ -131,45 +131,41 @@ def get_data(filters):
             MAX(ranked.shift)                                       AS shift,
             MAX(st.start_time)                                      AS shift_in_time,
             MAX(st.end_time)                                        AS shift_out_time,
-            MAX(CASE WHEN ranked.rn = 1 THEN ranked.time END)       AS check_in_dt,
-            MAX(CASE WHEN ranked.rn = 2 THEN ranked.time END)       AS check_out_dt,
+            MIN(ranked.time)                                        AS check_in_dt,
+            MAX(ranked.time)                                        AS check_out_dt,
             ROUND(
                 TIMESTAMPDIFF(
                     MINUTE,
-                    MAX(CASE WHEN ranked.rn = 1 THEN ranked.time END),
-                    MAX(CASE WHEN ranked.rn = 2 THEN ranked.time END)
+                    MIN(ranked.time),
+                    MAX(ranked.time)
                 ) / 60.0,
                 2
             )                                                       AS working_hours,
             GREATEST(
+                TIMESTAMPDIFF(
+                    MINUTE,
+                    MAX(st.start_time),
+                    TIME(MIN(ranked.time))
+                ),
+                0
+            )                                                       AS late_minutes,
+            ROUND(
+                GREATEST(
                     TIMESTAMPDIFF(
                         MINUTE,
-                        MAX(st.start_time),
-                        TIME(MAX(CASE WHEN ranked.rn = 1 THEN ranked.time END))
+                        MAX(st.end_time),
+                        TIME(MAX(ranked.time))
                     ),
                     0
-                )                                                       AS late_minutes,
-                ROUND(
-                    GREATEST(
-                        TIMESTAMPDIFF(
-                            MINUTE,
-                            MAX(st.end_time),
-                            TIME(MAX(CASE WHEN ranked.rn = 2 THEN ranked.time END))
-                        ),
-                        0
-                    ) / 60.0,
-                    2
-                )                                                       AS overtime
+                ) / 60.0,
+                2
+            )                                                       AS overtime
         FROM (
             SELECT
                 ec.employee,
                 DATE(ec.time)   AS date,
                 ec.time,
-                ec.shift,
-                ROW_NUMBER() OVER (
-                    PARTITION BY ec.employee, DATE(ec.time)
-                    ORDER BY ec.time ASC
-                )               AS rn
+                ec.shift
             FROM
                 `tabEmployee Checkin` ec
             WHERE
@@ -204,7 +200,7 @@ def get_data(filters):
             "check_out_time":   _dt_to_time_str(ci.get("check_out_dt")),
             "working_hours":    ci.get("working_hours"),
             "late_minutes":     ci.get("late_minutes"),
-            "overtime": ci.get("overtime"),
+            "overtime":         ci.get("overtime"),
             "status":           "Present",
         })
 
@@ -223,7 +219,7 @@ def get_data(filters):
                 "check_out_time":   None,
                 "working_hours":    None,
                 "late_minutes":     None,
-                "overtime": None,
+                "overtime":         None,
                 "status":           "Absent",
             })
 

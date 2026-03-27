@@ -73,6 +73,18 @@ def get_columns():
             "width": 130,
         },
         {
+            "fieldname": "late_minutes",
+            "label": _("Late Minutes"),
+            "fieldtype": "Int",
+            "width": 120,
+        },
+        {
+            "fieldname": "overtime",
+            "label": _("Over Time (Hours)"),
+            "fieldtype": "Float",
+            "width": 130,
+        },
+        {
             "fieldname": "status",
             "label": _("Status"),
             "fieldtype": "Data",
@@ -84,7 +96,6 @@ def get_columns():
 def get_data(filters):
     filters = filters or {}
 
-    # ── 1. Fetch all matching employees (respects employee/dept/desig filters)
     emp_conditions = _get_employee_conditions(filters)
     emp_rows = frappe.db.sql(
         """
@@ -110,10 +121,6 @@ def get_data(filters):
     employee_ids = [r["employee"] for r in emp_rows]
     emp_map = {r["employee"]: r for r in emp_rows}
 
-    # ── 2. Fetch checkin aggregates using ROW_NUMBER to pick 1st and 2nd punch
-    #       regardless of log_type value.
-    #       ranked CTE assigns rank per (employee, date) ordered by time ASC.
-    #       Outer query picks rank=1 as check-in, rank=2 as check-out.
     checkin_conditions = _get_checkin_conditions(filters, employee_ids)
 
     checkin_rows = frappe.db.sql(
@@ -133,7 +140,26 @@ def get_data(filters):
                     MAX(CASE WHEN ranked.rn = 2 THEN ranked.time END)
                 ) / 60.0,
                 2
-            )                                                       AS working_hours
+            )                                                       AS working_hours,
+            GREATEST(
+                    TIMESTAMPDIFF(
+                        MINUTE,
+                        MAX(st.start_time),
+                        TIME(MAX(CASE WHEN ranked.rn = 1 THEN ranked.time END))
+                    ),
+                    0
+                )                                                       AS late_minutes,
+                ROUND(
+                    GREATEST(
+                        TIMESTAMPDIFF(
+                            MINUTE,
+                            MAX(st.end_time),
+                            TIME(MAX(CASE WHEN ranked.rn = 2 THEN ranked.time END))
+                        ),
+                        0
+                    ) / 60.0,
+                    2
+                )                                                       AS overtime
         FROM (
             SELECT
                 ec.employee,
@@ -158,66 +184,59 @@ def get_data(filters):
         as_dict=True,
     )
 
-    # ── 3. Build result rows ──────────────────────────────────────────────────
-    # - Employees WITH checkins  → one row per (employee, date) they appeared
-    # - Employees WITHOUT any checkin in the range → single row, no date
     result_present = []
     result_absent  = []
 
-    # Track which employees had at least one checkin in the range
     employees_with_checkin = set(row["employee"] for row in checkin_rows)
 
-    # Present rows — iterate over actual checkin records only
     for ci in checkin_rows:
         eid = ci["employee"]
         emp = emp_map.get(eid, {})
         result_present.append({
-            "date":          ci.get("date"),
-            "employee":      eid,
-            "employee_name": emp.get("employee_name"),
-            "designation":   emp.get("designation"),
-            "shift":         ci.get("shift"),
-            "shift_in_time": _td_to_time_str(ci.get("shift_in_time")),
-            "shift_out_time":_td_to_time_str(ci.get("shift_out_time")),
-            "check_in_time": _dt_to_time_str(ci.get("check_in_dt")),
-            "check_out_time":_dt_to_time_str(ci.get("check_out_dt")),
-            "working_hours": ci.get("working_hours"),
-            "status":        "Present",
+            "date":             ci.get("date"),
+            "employee":         eid,
+            "employee_name":    emp.get("employee_name"),
+            "designation":      emp.get("designation"),
+            "shift":            ci.get("shift"),
+            "shift_in_time":    _td_to_time_str(ci.get("shift_in_time")),
+            "shift_out_time":   _td_to_time_str(ci.get("shift_out_time")),
+            "check_in_time":    _dt_to_time_str(ci.get("check_in_dt")),
+            "check_out_time":   _dt_to_time_str(ci.get("check_out_dt")),
+            "working_hours":    ci.get("working_hours"),
+            "late_minutes":     ci.get("late_minutes"),
+            "overtime": ci.get("overtime"),
+            "status":           "Present",
         })
 
-    # Absent rows — one per employee who never appeared in checkins
     for emp in emp_rows:
         eid = emp["employee"]
         if eid not in employees_with_checkin:
             result_absent.append({
-                "date":          None,
-                "employee":      eid,
-                "employee_name": emp.get("employee_name"),
-                "designation":   emp.get("designation"),
-                "shift":         None,
-                "shift_in_time": None,
-                "shift_out_time":None,
-                "check_in_time": None,
-                "check_out_time":None,
-                "working_hours": None,
-                "status":        "Absent",
+                "date":             None,
+                "employee":         eid,
+                "employee_name":    emp.get("employee_name"),
+                "designation":      emp.get("designation"),
+                "shift":            None,
+                "shift_in_time":    None,
+                "shift_out_time":   None,
+                "check_in_time":    None,
+                "check_out_time":   None,
+                "working_hours":    None,
+                "late_minutes":     None,
+                "overtime": None,
+                "status":           "Absent",
             })
 
-    # Sort present rows: most-recent date first, then employee ascending
     result_present.sort(key=lambda r: (r["date"], r["employee"]), reverse=False)
     result_present.sort(key=lambda r: r["date"], reverse=True)
-
-    # Absent rows sorted by employee name
     result_absent.sort(key=lambda r: r["employee"])
 
-    # Present rows first, then absent at the bottom
     return result_present + result_absent
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
 def _dt_to_time_str(dt):
-    """datetime → 'HH:MM:SS'  (or None if missing)"""
     if not dt:
         return None
     try:
@@ -227,7 +246,6 @@ def _dt_to_time_str(dt):
 
 
 def _td_to_time_str(td):
-    """timedelta → 'HH:MM:SS'  (MariaDB returns TIME columns as timedelta)"""
     if td is None:
         return None
     if isinstance(td, timedelta):
@@ -239,7 +257,6 @@ def _td_to_time_str(td):
 
 
 def _get_employee_conditions(filters):
-    """WHERE clauses that apply to the Employee table directly."""
     conditions = ""
     if filters.get("employee"):
         conditions += " AND e.name = %(employee)s"
@@ -251,12 +268,6 @@ def _get_employee_conditions(filters):
 
 
 def _get_checkin_conditions(filters, employee_ids):
-    """
-    WHERE clauses for the checkin query.
-    employee_ids list is injected directly (safe — they are internal PK values
-    fetched from our own employee query above, never from raw user input).
-    """
-    # Always restrict to the employees we already resolved
     ids_placeholder = ", ".join(
         "'{}'".format(eid.replace("'", "''")) for eid in employee_ids
     )
@@ -264,10 +275,8 @@ def _get_checkin_conditions(filters, employee_ids):
 
     if filters.get("shift"):
         conditions += " AND ec.shift = %(shift)s"
-
     if filters.get("from_date"):
         conditions += " AND DATE(ec.time) >= %(from_date)s"
-
     if filters.get("to_date"):
         conditions += " AND DATE(ec.time) <= %(to_date)s"
 

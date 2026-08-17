@@ -1,0 +1,161 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{custom_bale}-{date}-{###}",
+ "creation": "2026-07-26 21:51:23.298602",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_vvv7",
+  "amended_from",
+  "date",
+  "company",
+  "total_balance_weight",
+  "column_break_uwcm",
+  "warehouse",
+  "stock_entry_reference",
+  "sales_order",
+  "section_break_jbdv",
+  "daily_receipt_item",
+  "section_break_etsm",
+  "total_produced_qty",
+  "column_break_unpm",
+  "total_produced_weight",
+  "section_break_idtl",
+  "daily_receipt_issuance_ref"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_vvv7",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Daily Receipt",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "default": "ARH",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_uwcm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "label": "Warehouse",
+   "link_filters": "[[\"Warehouse\",\"company\",\"=\",\"ARH\"]]",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "stock_entry_reference",
+   "fieldtype": "Link",
+   "label": "Stock Entry Reference",
+   "options": "Stock Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_etsm",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_produced_qty",
+   "fieldtype": "Float",
+   "label": "Total Produced Qty"
+  },
+  {
+   "fieldname": "total_balance_weight",
+   "fieldtype": "Float",
+   "label": "Total Balance Weight",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_jbdv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "daily_receipt_item",
+   "fieldtype": "Table",
+   "label": "Daily Receipt Item",
+   "options": "Daily Receipt Item"
+  },
+  {
+   "fieldname": "section_break_idtl",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "daily_receipt_issuance_ref",
+   "fieldtype": "Table",
+   "label": "Daily Receipt Issuance Ref",
+   "options": "Daily Receipt Issuance Reference"
+  },
+  {
+   "fieldname": "column_break_unpm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_produced_weight",
+   "fieldtype": "Float",
+   "label": "Total Produced Weight",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sales_order",
+   "fieldtype": "Data",
+   "label": "Sales Order",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [
+  {
+   "link_doctype": "Stock Entry",
+   "link_fieldname": "custom_daily_receipt_reference"
+  }
+ ],
+ "modified": "2026-08-12 14:28:17.740562",
+ "modified_by": "Administrator",
+ "module": "Alwadaq",
+ "name": "Daily Receipt",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

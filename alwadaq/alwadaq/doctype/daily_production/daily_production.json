@@ -1,0 +1,172 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-04-24 17:00:18.104634",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_az3i",
+  "naming_series",
+  "column_break_bmwj",
+  "amended_from",
+  "stock_entry",
+  "column_break_zfvu",
+  "date",
+  "section_break_hrkm",
+  "scan_serial_no",
+  "daily_production_raw_material",
+  "totals_section",
+  "total_qty",
+  "column_break_axxx",
+  "total_amount",
+  "section_break_zmhi",
+  "daily_production_finished_goods",
+  "section_break_ftyf",
+  "total_completed_qty",
+  "column_break_xggz",
+  "total_finished_amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_az3i",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Daily Production",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "daily_production_raw_material",
+   "fieldtype": "Table",
+   "label": "Daily Production Raw Material",
+   "options": "Daily Production Raw Materials",
+   "reqd": 1
+  },
+  {
+   "fieldname": "totals_section",
+   "fieldtype": "Section Break",
+   "label": "Total Raw Consumed"
+  },
+  {
+   "fieldname": "total_qty",
+   "fieldtype": "Float",
+   "label": "Total Qty",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_axxx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "label": "Total Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_zmhi",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "daily_production_finished_goods",
+   "fieldtype": "Table",
+   "label": "Daily Production Finished Goods",
+   "options": "Daily Production Finished Goods",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_ftyf",
+   "fieldtype": "Section Break",
+   "label": "Total Production"
+  },
+  {
+   "fieldname": "total_completed_qty",
+   "fieldtype": "Float",
+   "label": "Total Completed Qty",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_xggz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_finished_amount",
+   "fieldtype": "Currency",
+   "label": "Total Finished Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_bmwj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "stock_entry",
+   "fieldtype": "Link",
+   "label": "Stock Entry",
+   "options": "Stock Entry"
+  },
+  {
+   "fieldname": "section_break_hrkm",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series"
+  },
+  {
+   "fieldname": "column_break_zfvu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "scan_serial_no",
+   "fieldtype": "Data",
+   "label": "Scan Serial No"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-05-19 01:51:08.401663",
+ "modified_by": "Administrator",
+ "module": "Alwadaq",
+ "name": "Daily Production",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

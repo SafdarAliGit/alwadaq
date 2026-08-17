@@ -1,0 +1,175 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:DI-{date}-{##}",
+ "creation": "2026-07-26 17:56:32.240605",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_ekdw",
+  "date",
+  "company",
+  "amended_from",
+  "column_break_ppgn",
+  "warehouse",
+  "stock_entry_reference",
+  "bale",
+  "section_break_feoi",
+  "scan_serial_no",
+  "daily_issuance_item",
+  "section_break_mjyr",
+  "total_bales_issued",
+  "total_amount",
+  "column_break_ohyw",
+  "total_weight_of_bales",
+  "produced_qty",
+  "balance_qty"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_ekdw",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Daily Issuance",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "default": "ARH",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_ppgn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Stores - ARHC",
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Warehouse",
+   "link_filters": "[[\"Warehouse\",\"company\",\"=\",\"ARH\"]]",
+   "options": "Warehouse",
+   "reqd": 1
+  },
+  {
+   "fieldname": "stock_entry_reference",
+   "fieldtype": "Link",
+   "label": "Stock Entry Reference",
+   "options": "Stock Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_mjyr",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_bales_issued",
+   "fieldtype": "Float",
+   "label": "Total Bales Issued",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_ohyw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_weight_of_bales",
+   "fieldtype": "Float",
+   "label": "Total Weight of Bales",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "label": "Total Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_feoi",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "daily_issuance_item",
+   "fieldtype": "Table",
+   "label": "Daily Issuance Item",
+   "options": "Daily Issuance Item"
+  },
+  {
+   "fieldname": "scan_serial_no",
+   "fieldtype": "Data",
+   "label": "Scan Serial No"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "produced_qty",
+   "fieldtype": "Float",
+   "label": "Produced Qty"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "balance_qty",
+   "fieldtype": "Float",
+   "label": "Balance Qty"
+  },
+  {
+   "fieldname": "bale",
+   "fieldtype": "Select",
+   "label": "Bale",
+   "options": "\nSmall\nBig\nBag",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [
+  {
+   "link_doctype": "Stock Entry",
+   "link_fieldname": "custom_daily_issuance_reference"
+  }
+ ],
+ "modified": "2026-08-12 14:27:31.650866",
+ "modified_by": "Administrator",
+ "module": "Alwadaq",
+ "name": "Daily Issuance",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

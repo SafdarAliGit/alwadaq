@@ -1,0 +1,111 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-07-26 18:02:26.111282",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "item_code",
+  "qty",
+  "rate",
+  "amount",
+  "status",
+  "column_break_usdn",
+  "weight_per_bale",
+  "total_weight",
+  "serial_no",
+  "stock_entry_reference",
+  "cancel_issuance",
+  "purchase_receipt_reference"
+ ],
+ "fields": [
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "label": "Item Code",
+   "options": "Item",
+   "read_only": 1
+  },
+  {
+   "fieldname": "qty",
+   "fieldtype": "Int",
+   "label": "Qty",
+   "read_only": 1
+  },
+  {
+   "fieldname": "rate",
+   "fieldtype": "Currency",
+   "label": "Rate",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_usdn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "weight_per_bale",
+   "fieldtype": "Float",
+   "label": "Weight Per Bale",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_weight",
+   "fieldtype": "Float",
+   "label": "Total Weight",
+   "read_only": 1
+  },
+  {
+   "fieldname": "serial_no",
+   "fieldtype": "Link",
+   "label": "Serial No",
+   "options": "Serial No",
+   "read_only": 1
+  },
+  {
+   "fieldname": "stock_entry_reference",
+   "fieldtype": "Link",
+   "label": "Stock Entry Reference",
+   "options": "Stock Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cancel_issuance",
+   "fieldtype": "Button",
+   "label": "Cancel Issuance"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "\nIssued\nCancelled",
+   "read_only": 1
+  },
+  {
+   "fieldname": "purchase_receipt_reference",
+   "fieldtype": "Link",
+   "label": "Purchase Receipt Reference",
+   "options": "Purchase Receipt",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-08-10 00:54:23.944025",
+ "modified_by": "Administrator",
+ "module": "Alwadaq",
+ "name": "Daily Issuance Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

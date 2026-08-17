@@ -1,0 +1,229 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-07-17 16:24:26.135028",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_az3i",
+  "date",
+  "stock_entry",
+  "amended_from",
+  "sales_order",
+  "column_break_bmwj",
+  "naming_series",
+  "custom_company",
+  "mixed_bale",
+  "section_break_hrkm",
+  "column_break_lpvu",
+  "column_break_bsbn",
+  "scan_serial_no",
+  "section_break_mwpz",
+  "master_bale_raw_material",
+  "totals_section",
+  "total_qty",
+  "custom_total_weight_in_kgs_raw",
+  "column_break_axxx",
+  "total_amount",
+  "section_break_zmhi",
+  "master_bale_finished_goods",
+  "section_break_ftyf",
+  "total_completed_qty",
+  "custom_total_weight_in_kgs_finished",
+  "column_break_xggz",
+  "total_finished_amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_az3i",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "MBP-26",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "MBP-26"
+  },
+  {
+   "fieldname": "column_break_bmwj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Master Bale Production",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "stock_entry",
+   "fieldtype": "Link",
+   "label": "Stock Entry",
+   "options": "Stock Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_hrkm",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "scan_serial_no",
+   "fieldtype": "Data",
+   "label": "Scan Serial No"
+  },
+  {
+   "fieldname": "totals_section",
+   "fieldtype": "Section Break",
+   "label": "Total Raw Consumed"
+  },
+  {
+   "fieldname": "total_qty",
+   "fieldtype": "Float",
+   "label": "Total Qty",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_axxx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "label": "Total Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_zmhi",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_ftyf",
+   "fieldtype": "Section Break",
+   "label": "Total Production"
+  },
+  {
+   "fieldname": "total_completed_qty",
+   "fieldtype": "Float",
+   "label": "Total Completed Qty",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_xggz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_finished_amount",
+   "fieldtype": "Currency",
+   "label": "Total Finished Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Master Bale Production",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "master_bale_raw_material",
+   "fieldtype": "Table",
+   "label": "Master Bale Raw Material",
+   "options": "Master Bale Raw Materials",
+   "reqd": 1
+  },
+  {
+   "fieldname": "master_bale_finished_goods",
+   "fieldtype": "Table",
+   "label": "Master Bale Finished Goods",
+   "options": "Master Bale Finished Goods"
+  },
+  {
+   "fieldname": "column_break_bsbn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_mwpz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "custom_total_weight_in_kgs_raw",
+   "fieldtype": "Float",
+   "label": "Total Weight in Kgs Raw",
+   "read_only": 1
+  },
+  {
+   "fieldname": "custom_total_weight_in_kgs_finished",
+   "fieldtype": "Float",
+   "label": "Total Weight in Kgs Finished",
+   "read_only": 1
+  },
+  {
+   "default": "ARH",
+   "fieldname": "custom_company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "column_break_lpvu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "mixed_bale",
+   "fieldtype": "Check",
+   "label": "Mixed Bale"
+  },
+  {
+   "fieldname": "sales_order",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Sales Order",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-07-31 16:48:50.550570",
+ "modified_by": "Administrator",
+ "module": "Alwadaq",
+ "name": "Master Bale Production",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
